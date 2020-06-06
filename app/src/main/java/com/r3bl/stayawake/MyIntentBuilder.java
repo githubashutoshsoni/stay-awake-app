@@ -26,8 +26,6 @@ import org.junit.Assert;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-// Command enumeration
-// more info - http://blog.shamanland.com/2016/02/int-string-enum.html
 @IntDef({Command.INVALID, Command.STOP, Command.START})
 @Retention(RetentionPolicy.SOURCE) @interface Command {
 

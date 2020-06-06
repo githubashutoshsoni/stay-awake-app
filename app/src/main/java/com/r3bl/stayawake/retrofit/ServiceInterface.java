@@ -18,7 +18,7 @@ public interface ServiceInterface {
 
 
 //    enter your authorization bearer into this field
-    @Headers("Authorization: ")
+    @Headers("Authorization: Bearer ")
     @GET(TWEET_API)
     Call<ResponseBody> getTweetFeeds();
 
