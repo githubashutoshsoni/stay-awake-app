@@ -28,127 +28,44 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.text.util.LinkifyCompat;
 
+import com.r3bl.stayawake.database.Task;
+import com.r3bl.stayawake.database.ToDoDatabase;
+
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
-public static final String TAG = "SA_MainActivity";
+    public static final String TAG = "SA_MainActivity";
 
-@Override
-protected void onCreate(Bundle savedInstanceState) {
-  super.onCreate(savedInstanceState);
-  setContentView(R.layout.activity_main);
-  //showAppIconInActionBar();
-  //hideStatusBar();
-  loadAndApplyFonts();
-  formatMessages();
-  MyTileService.coldStart(this, false);
-}
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-private void loadAndApplyFonts() {
-  Typeface typeNotoSansRegular =
-      Typeface.createFromAsset(getAssets(), "fonts/notosans_regular.ttf");
-  Typeface typeNotoSansBold =
-      Typeface.createFromAsset(getAssets(), "fonts/notosans_bold.ttf");
-  Typeface typeTitilumWebLight =
-      Typeface.createFromAsset(getAssets(), "fonts/titilliumweb_light.ttf");
-  Typeface typeTitilumWebRegular =
-      Typeface.createFromAsset(getAssets(), "fonts/titilliumweb_regular.ttf");
+        MyTileService.coldStart(this, false);
+        TextView textTweetData = findViewById(R.id.tweet_data);
+        AppExecutors appExecutors = new AppExecutors();
+        appExecutors.diskIO().execute(() -> {
 
-  ((TextView) findViewById(R.id.text_app_title))
-      .setTypeface(typeNotoSansBold);
+            List<Task> tasksList = ToDoDatabase.getInstance(MainActivity.this).taskDao().getTasks();
+            if (tasksList.isEmpty()) {
+                textTweetData.setText("Nothing fetched from the url");
+            } else {
 
-  ((TextView) findViewById(R.id.text_marketing_message))
-      .setTypeface(typeTitilumWebLight);
+                for (Task task
+                        : tasksList
+                ) {
+                    textTweetData.setText(task.getContent());
+                }
+            }
 
-  int[] arrayOfTitilumWebRegular = {
-      R.id.text_introduction_heading,
-      R.id.text_installation_heading,
-      R.id.text_opensource_title,
-      };
 
-  for (int id : arrayOfTitilumWebRegular) {
-    ((TextView) findViewById(id)).setTypeface(typeTitilumWebRegular);
-  }
+        });
+    }
 
-  int[] arrayOfNotoSansRegular = {
-      R.id.text_introduction_content,
-      R.id.text_install_body,
-      R.id.text_install_body_1,
-      R.id.text_install_body_2,
-      R.id.text_install_body_3,
-      R.id.text_opensource_body,
-      };
 
-  for (int id : arrayOfNotoSansRegular) {
-    ((TextView) findViewById(id)).setTypeface(typeNotoSansRegular);
-  }
-
-}
-
-private void hideStatusBar() {
-  View decorView = getWindow().getDecorView();
-  // Hide the status bar.
-  int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
-  decorView.setSystemUiVisibility(uiOptions);
-  // Remember that you should never show the action bar if the
-  // status bar is hidden, so hide that too if necessary.
-  ActionBar actionBar = getActionBar();
-  if (actionBar != null) {
-    actionBar.hide();
-  }
-}
-
-private void showAppIconInActionBar() {
-  getSupportActionBar().setDisplayShowHomeEnabled(true);
-  getSupportActionBar().setLogo(R.mipmap.ic_launcher);
-  getSupportActionBar().setDisplayUseLogoEnabled(true);
-}
-
-private void formatMessages() {
-  // Add actual minutes to string template.
-  TextView textView1 = (TextView) findViewById(R.id.text_introduction_content);
-  final long hours = TimeUnit.SECONDS.toMinutes(MyTileService.MAX_TIME_SEC);
-  textView1.setText(getString(R.string.introduction_body, hours));
-
-  // Linkify github link.
-  TextView textview2 = (TextView) findViewById(R.id.text_opensource_body);
-  LinkifyCompat.addLinks(textview2, Linkify.WEB_URLS);
-
-  // Spanning color on textviews.
-  applySpan((TextView) findViewById(R.id.text_install_body_1),
-            R.id.text_install_body_1,
-            "Step 1");
-
-  applySpan((TextView) findViewById(R.id.text_install_body_2),
-            R.id.text_install_body_2,
-            "Step 2");
-
-  applySpan((TextView) findViewById(R.id.text_install_body_3),
-            R.id.text_install_body_3,
-            "Step 3");
-
-}
-
-private void applySpan(TextView textView, int id, String substring) {
-  setColorSpanOnTextView(textView,
-                         getString(R.string.install_body_1, substring),
-                         substring,
-                         getColor(R.color.colorTextDark));
-}
-
-private void setColorSpanOnTextView(TextView view,
-                                    String fulltext,
-                                    String subtext,
-                                    int color) {
-  view.setText(fulltext, TextView.BufferType.SPANNABLE);
-  Spannable str = (Spannable) view.getText();
-  int i = fulltext.indexOf(subtext);
-  str.setSpan(new ForegroundColorSpan(color), i, i + subtext.length(),
-              Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-}
-
-public void buttonStartAwakeClicked(View view) {
-  MyTileService.coldStart(this, true);
-}
+    public void buttonStartAwakeClicked(View view) {
+        MyTileService.coldStart(this, true);
+    }
 }

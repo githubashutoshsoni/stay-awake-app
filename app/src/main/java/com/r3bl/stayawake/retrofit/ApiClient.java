@@ -12,10 +12,9 @@ import retrofit2.Retrofit;
 
 public class ApiClient {
 
-    //    public static final String BASE_LOCAL_URL = "http://192.168.1.4:3000/";
-//    public static final String BASE_LOCAL_EMULATOR_URL = "http://10.0.2.2:3000/";
-    public static final String SERVIER_LOGIN = "http://ec2-13-127-84-252.ap-south-1.compute.amazonaws.com/";
-    public static final String BASE_URL = SERVIER_LOGIN;
+    public static final String SERVER_LOGIN = "https://api.twitter.com/";
+
+    public static final String BASE_URL = SERVER_LOGIN;
 
     private static Retrofit retrofit = null;
 

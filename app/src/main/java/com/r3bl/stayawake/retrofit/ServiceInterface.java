@@ -1,23 +1,30 @@
 package com.r3bl.stayawake.retrofit;
 
 
-import com.r3bl.stayawake.database.Location;
-
-import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
-import retrofit2.http.Body;
 import retrofit2.http.GET;
-import retrofit2.http.POST;
+import retrofit2.http.Header;
+import retrofit2.http.Headers;
+import retrofit2.http.Query;
 
 public interface ServiceInterface {
 
 
-    String TWITTER_API = "twitter.com/get/twitter/login/api";
+    String LOCATION_API = "/1.1/geo/reverse_geocode.json?lat=37.781157&long=-122.398720&granularity=neighborhood";
 
 
-    @GET("api/user/branch/getBranchDetail")
-    Call<ResponseBody> getTweetsFeed(@Body Location location);
+    String TWEET_API = "/1.1/statuses/user_timeline.json?count=10&screen_name=twitterapi";
+
+
+//    enter your authorization bearer into this field
+    @Headers("Authorization: ")
+    @GET(TWEET_API)
+    Call<ResponseBody> getTweetFeeds();
+
+
+    @GET(LOCATION_API)
+    Call<ResponseBody> getTweetsFeed(@Query("lat") Double lat, @Query("long") Double lon);
 
 
 }

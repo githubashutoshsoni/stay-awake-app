@@ -27,15 +27,18 @@ import android.os.Handler;
 import android.os.PowerManager;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
+import android.widget.Toast;
 
 import androidx.annotation.MainThread;
 
+import com.r3bl.stayawake.database.Task;
 import com.r3bl.stayawake.database.ToDoDatabase;
 import com.r3bl.stayawake.retrofit.ApiClient;
 import com.r3bl.stayawake.retrofit.ServiceInterface;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -130,11 +133,7 @@ public class MyTileService extends TileService {
         pw.close();
     }
 
-    /**
-     * @param forceIfNotCharging If you want to start the service regardless of whether the device is currently charging
-     *                           or not then pass true here, otherwise, the service will not start if the device isn't
-     *                           charging.
-     */
+
     public static void coldStart(Context context, boolean forceIfNotCharging) {
         // Check if charging, and start it.
         if (forceIfNotCharging || isCharging(context)) {
@@ -319,7 +318,44 @@ public class MyTileService extends TileService {
 
             ApiClient.getClient(getApplicationContext()).
                     create(ServiceInterface.class).
-                    getTweetsFeed()
+                    getTweetFeeds().enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+
+
+                    if (response.isSuccessful() && response.body() != null) {
+
+                        AppExecutors executors = new AppExecutors();
+                        executors.diskIO().execute(() -> {
+
+                            Task task = new Task();
+                            try {
+                                task.setContent(response.body().string());
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            ToDoDatabase.
+                                    getInstance(getApplicationContext()).
+                                    taskDao().
+                                    insertTask(task);
+
+                            executors.mainThread().execute(() -> Toast.makeText
+                                    (getApplicationContext(), "Successfully saved ", Toast.LENGTH_SHORT)
+                                    .show());
+
+
+                        });
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Toast.makeText(getApplicationContext(), "Error ffetching details", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+
+            ;
 
 
 //            ToDoDatabase.getInstance(getApplicationContext()).taskDao().insertTask();
